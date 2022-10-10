@@ -5,27 +5,35 @@ import (
 	"github.com/AndreyDuda/go-api-todo/pkg/handler"
 	"github.com/AndreyDuda/go-api-todo/pkg/repository"
 	"github.com/AndreyDuda/go-api-todo/pkg/service"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"log"
+	"os"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
+		logrus.Fatalf("error initializing configs: %s", err.Error())
+	}
+
+	if err := godotenv.Load(); err != nil {
+		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
-		Host:     "localhost",
-		Port:     "5436",
-		UserName: "postgres",
-		Password: "qwerty",
-		DBName:   "postgres",
-		SSLMode:  "disable",
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		UserName: viper.GetString("db.username"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
 	})
 
 	if err != nil {
-		log.Fatalf("failed to initialize db: %s", err.Error())
+		logrus.Fatalf("failed to initialize db: %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
