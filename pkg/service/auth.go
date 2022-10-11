@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	todo "github.com/AndreyDuda/go-api-todo"
 	"github.com/AndreyDuda/go-api-todo/pkg/repository"
@@ -24,7 +25,7 @@ type AuthService struct {
 	repo repository.Authorization
 }
 
-func newAutService(repo repository.Authorization) *AuthService {
+func NewAutService(repo repository.Authorization) *AuthService {
 	return &AuthService{repo: repo}
 }
 
@@ -46,6 +47,27 @@ func (s *AuthService) GenerateToken(username string, password string) (string, e
 	})
 
 	return token.SignedString([]byte(signingKey))
+}
+
+func (s *AuthService) ParseToken(accessToken string) (int, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(signingKey), nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+	if !ok {
+		return 0, errors.New("token claims are not of type *tokenClaims")
+	}
+
+	return claims.UserId, nil
 }
 
 func generatePasswordHash(password string) string {

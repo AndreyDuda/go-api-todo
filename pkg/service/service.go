@@ -8,9 +8,13 @@ import (
 type Authorization interface {
 	CreateUser(user todo.User) (int, error)
 	GenerateToken(username string, password string) (string, error)
+	ParseToken(token string) (int, error)
 }
 
 type Todolist interface {
+	Create(userId int, list todo.TodoList) (int, error)
+	GetAll(userId int) ([]todo.TodoList, error)
+	GetById(userId int, listId int) (todo.TodoList, error)
 }
 
 type TodoItem interface {
@@ -24,6 +28,7 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization: newAutService(repos.Authorization),
+		Authorization: NewAutService(repos.Authorization),
+		Todolist:      NewTodoListService(repos.Todolist),
 	}
 }
