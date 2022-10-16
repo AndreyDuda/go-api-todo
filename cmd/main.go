@@ -16,6 +16,16 @@ import (
 	"syscall"
 )
 
+// @title api-go-todo
+// @version 1.0
+// @description API Server for TodoList Application
+
+// @host localhost:8000
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 	var err error
